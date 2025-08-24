@@ -1,0 +1,79 @@
+import sqlite3
+%load_ext sql
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+dados_vendas_df = pd.read_csv('SampleSuperstore.csv.zip')
+display(dados_vendas_df)
+#dados_vendas_df.isnull().sum()
+#Contem 0 dados nulos
+
+total_vendas = dados_vendas_df['Sales'].sum()
+print(f'O total de vendas foi de {total_vendas:.2f}')
+
+vendas_negativas = (dados_vendas_df['Sales'] < 0).sum()
+print(f'O total de vendas negativas foi {vendas_negativas}')
+total_sub_categoria = dados_vendas_df['Sub-Category'].nunique()
+print(f'O total de subcategorias existentes é de {total_sub_categoria}')
+
+lucro = dados_vendas_df['Profit'].sum()
+print(f'O lucro total foi de {lucro:.2f}')
+
+lucro_por_categoria = dados_vendas_df.groupby('Sub-Category')['Profit'].sum()
+display(lucro_por_categoria)
+
+prejuizo = dados_vendas_df[dados_vendas_df['Profit'] < 0].groupby('Sub-Category')['Profit'].sum()
+display(prejuizo)
+
+vendas_por_cidade = dados_vendas_df.groupby('City')['Profit'].sum()
+mais_lucrativas = vendas_por_cidade.nlargest(10)
+print(f'As 10 cidades mais lucrativas são {mais_lucrativas}')
+
+vendas_por_regiao = dados_vendas_df.groupby('Region')['Profit'].sum()
+regiao_mais_lucativa = vendas_por_regiao.nlargest()
+display(regiao_mais_lucativa)
+
+print('~' * 100)
+plt.figure(figsize=(8, 6))
+sns.barplot(x = regiao_mais_lucativa.index, y = regiao_mais_lucativa.values)
+plt.title('Lucro Por Região')
+plt.xlabel('Região')
+plt.ylabel('Lucro')
+plt.show()
+print("Com esses dados podemos pressumir que a região que dá os maiores lucros é a região oeste.")
+print("~" * 100)
+
+print('Continuaremos com a análise dos dados com as vendas por cidade')
+plt.figure(figsize=(16, 12))
+sns.barplot(x=mais_lucrativas.index, y=mais_lucrativas.values)
+plt.title('Lucro Por Cidade')
+plt.xlabel('Cidade')
+plt.ylabel('Lucro')
+plt.show()
+
+print('Como podemos perceber, a cidade mais lucrativa nesses dados é New York City')
+print('~' * 100)
+
+print('O que foi nos mostrado no estudo desses dados é que a região mais lucrativa é a região oeste e a cidade sendo New York.')
+print('Assim, podemos tirar a conclusão que seria mais certo investir nesses locais para garantir a lucratividade de seus negócio.')
+print('~' * 100)
+
+print('Agora será feita a análise de quais categorias dão mais lucros ao vendedor.')
+
+categoria_lucro = dados_vendas_df.groupby('Category')['Profit'].sum()
+categoria_mais_lucrativas = categoria_lucro.nlargest()
+display(categoria_mais_lucrativas)
+
+fig2 = sns.barplot(x = categoria_mais_lucrativas.index, y = categoria_mais_lucrativas.values)
+plt.title('Lucro Por Categoria')
+plt.xlabel('Categoria')
+plt.ylabel('Lucro')
+plt.show()
+
+print('''Como mostrado no gráfico acima, a Categoria de tecnologia é que dá mais lucros e está em alta comparado as outras.
+Assim, sendo mais certo apostar nessa área, caso o empreendedor queira que seus negócios sejam bem sucedidos.''')
+print('~' * 100)
+
+print('E a junção da região e da cidade poderiam ser de boa forma para maximizar os seus lucros.')
