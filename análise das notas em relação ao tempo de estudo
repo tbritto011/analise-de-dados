@@ -1,0 +1,101 @@
+import kagglehub
+
+# Download latest version
+path = kagglehub.dataset_download("saadaliyaseen/analyzing-student-academic-trends")
+
+print("Path to dataset files:", path)
+
+import os
+
+# Lista todos os arquivos na pasta
+print(os.listdir(path))
+
+import pandas as pd
+
+# Cria o caminho completo para o arquivo CSV
+csv_file_path = os.path.join(path, "student_exam_scores.csv")
+
+# Lê o arquivo CSV para um DataFrame
+df_student_exam = pd.read_csv(csv_file_path)
+
+# Mostra as 5 primeiras linhas para verificar se funcionou
+display(df_student_exam)
+
+df_student_exam.isnull().sum()
+
+df_student_exam.duplicated().sum()
+
+print("SEM DADOS NULOS E/OU DUPLICADOS")
+
+import sqlite3
+
+conn = sqlite3.connect(':memory:')
+
+# Write the DataFrame to the SQLite database
+
+df_student_exam.to_sql('student_data', conn, index=False, if_exists='replace')
+
+query = """
+
+SELECT student_id, hours_studied, sleep_hours, exam_score
+
+FROM student_data
+
+ORDER BY exam_score ASC
+
+LIMIT 10
+
+"""
+
+df_worst_student_scores = pd.read_sql_query(query, conn)
+
+display(df_worst_student_scores)
+
+print("""Como pode ser analisado na tabela abaixo, os estudantes que tiraram as piores notas, tem um tempo de estudo relativamente baixo.
+
+Para feito de comparação, iremos mostrar abaixo uma tabela com as maiores notas da turma.""")
+
+query = """
+
+SELECT student_id, hours_studied, sleep_hours, exam_score
+
+FROM student_data
+
+ORDER BY exam_score DESC
+
+LIMIT 10
+
+"""
+
+df_best_student_scores = pd.read_sql_query(query, conn)
+
+display(df_best_student_scores)
+
+print("""Agora para o efeito comparativo entre a tabela anterior.
+
+Podemos ver que a maiores notas desta tabela foram de alunos que tiveram um tempo de estudo muito maior que os demais.
+
+Com isso, dando uma ênfase ainda maior na importância do estudo para que os alunos possam tirar boas notas.""")
+
+print("""Podemos também falar da quantidade de horas de sono, pois o descanso também é essencial para que o nosso cerébro acumule as informações do dia.""")
+
+import seaborn as sns
+
+import matplotlib.pyplot as plt
+
+print("Agora irei mostrar um gráfico para ficar melhor a visualização das informações passadas anteriormente")
+
+gf_scores_utilization = sns.lineplot(data=df_student_exam, x='hours_studied', y='exam_score')
+
+gf_scores_utilization.set_title("Hours Studied x Exam Score")
+
+gf_scores_utilization.set_xlabel("Hours Studied")
+
+gf_scores_utilization.set_ylabel("Exam Score")
+
+plt.show(gf_scores_utilization)
+
+
+print("""Analisando o gráfico pode ser visto que as maiores notas ficaram com os alunos que estudaram entre 10 a 12 horas.
+
+Dando ênfase nos dados das tabelas já anteriormente mostrados.""")
