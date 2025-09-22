@@ -1,0 +1,62 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+spotify_churn = pd.read_csv('spotify_churn_dataset.csv')
+spotify_churn.isnull().sum()
+
+
+print("SEM CATEGORIAS NULAS!")
+
+import sqlite3
+
+conn = sqlite3.connect(':memory:')
+
+spotify_churn.to_sql('dados', conn, if_exists='replace', index=False)
+
+query = """
+SELECT AVG(listening_time) ,subscription_type
+FROM dados
+GROUP BY subscription_type
+ORDER BY AVG(listening_time) DESC;
+"""
+
+
+df_medio = pd.read_sql_query(query, conn)
+display(df_medio)
+
+print("""Como podemos perceber pelo banco de dados acima, muitas horas ouvidas vem do plano grátis. 
+O que nos faz a empresa, obviamente, perder uma certa parte do dinheiro desses usuários que não tem nenhum plano.
+A solução pra essa questão seria atrativos melhores para esses diversos planos.""")
+
+query = """
+SELECT subscription_type, AVG(songs_played_per_day)
+FROM dados
+GROUP BY subscription_type
+ORDER BY AVG(songs_played_per_day) DESC;
+"""
+
+df_media_song = pd.read_sql_query(query, conn)
+display(df_media_song)
+
+print("""Também podemos analisar que o números de músicas tocadas por dia não perde muito para os outros planos.
+Além disso, se pararmos para analisar mais a fundo, o plano grátis ainda tem algumas limitações que impedem a quantidade de música ouvidas por dia.
+Sendo uma delas, os anúncios, que obviamente os impedem de escutar mais músicas e por mais tempo.
+Sendo assim, dando mais custo e beneficios para os planos pagos, poderíamos melhorar nossa margem de lucro com esse pessoal.""")
+
+fig = sns.barplot(data=df_medio, x='subscription_type', y='AVG(listening_time)')
+plt.title('Tempo Médio de Escuta Por Plano')
+plt.xlabel('Plano')
+plt.ylabel('Tempo Médio de Escuta (min)')
+plt.show()
+
+print("""O gráfico apenas reforça o que a tabela de dados nos mostrou, não há tanta diferença entre o plano grátis e os demais.
+E como eu já disse nos fazendo perder lucro com isso.
+Observe o outro gráfico abaixo para reforçar a outra parte""")
+
+fig = sns.barplot(data=df_media_song, x='subscription_type', y='AVG(songs_played_per_day)')
+plt.title('Média de Músicas Tocadas Por Dia Por Plano')
+plt.xlabel('Plano')
+plt.ylabel('Média de Músicas Tocadas Por Dia')
+plt.show()
